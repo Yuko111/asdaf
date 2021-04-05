@@ -1,0 +1,39 @@
+uintptr_t getModuleBaseAddress(DWORD procID, const wchar_t* modName) {
+
+	uintptr_t base_address = NULL;
+
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, procID);
+
+	MODULEENTRY32 modEntry = { 0 };
+
+	modEntry.dwSize = sizeof(modEntry);
+
+	if (Module32First(hSnap, &modEntry)) {
+
+		do {
+
+			if (!wcscmp(modEntry.szModule, modName)) {
+
+				base_address = reinterpret_cast<uintptr_t>(modEntry.modBaseAddr);
+
+			}
+
+		} while (Module32Next(hSnap, &modEntry));
+
+
+	}
+	CloseHandle(hSnap);
+	return base_address;
+}
+
+
+int main() {
+   
+	HWND hwnd = FindWindowA(NULL, "AssaultCube");
+	DWORD procID;
+	GetWindowThreadProcessId(hwnd, &procID);
+
+	uintptr_t base_address = getModuleBaseAddress(procID, L"ac_client");
+
+	std::cout << base_address << std::endl;
+}
